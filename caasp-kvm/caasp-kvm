@@ -339,7 +339,12 @@ build() {
 
   if [ -n "$CAASP_VELUM_DIR" -a "$VANILLA" != "true" ] ; then
     log "Rebuilding Velum Development Docker Image"
-    $DIR/tools/build-velum-image "$CAASP_VELUM_DIR" "${VELUM_IMAGE}" "${PROXY}"
+    if [[ "$VELUM_IMAGE" =~ [Cc]ache ]]; then
+      # Do not rebuild Docker image at all
+      $DIR/tools/build-velum-image "$CAASP_VELUM_DIR" "${VELUM_IMAGE}" "${PROXY}" -c
+    else
+      $DIR/tools/build-velum-image "$CAASP_VELUM_DIR" "${VELUM_IMAGE}" "${PROXY}"
+    fi
 
     log "Creating Velum Directories"
     mkdir -p "$CAASP_VELUM_DIR/tmp" "$CAASP_VELUM_DIR/log" "$CAASP_VELUM_DIR/vendor/bundle"

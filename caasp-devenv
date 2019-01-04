@@ -30,6 +30,7 @@ ACTION=
 MASTERS=${CAASP_NUM_MASTERS:-1}
 WORKERS=${CAASP_NUM_WORKERS:-2}
 IMAGE=${CAASP_IMAGE:-channel://devel}
+VELUM_IMAGE=${CAASP_VELUM_IMAGE:-channel://devel}
 VANILLA=${CAASP_VANILLA:-}
 DISABLE_MELTDOWN_SPECTRE=${CAASP_DISABLE_MELTDOWN_SPECTRE:-}
 PROXY=${CAASP_HTTP_PROXY:-}
@@ -78,6 +79,7 @@ Usage:
     -u|--update-deployment           Update Terraform deployment (Default: false)
     -d|--destroy                     Run the CaaSP KVM Destroy Step
     -i|--image                       Image to use (Default: CAASP_IMAGE)
+    --velum-image                    Container image to use for Velum build (Default: channel://devel)
     --vanilla                        Do not inject devenv code, use vanilla caasp (Default: false)
     --disable-meltdown-spectre-fixes Disable meltdown and spectre fixes (Default: false)
     --enable-tiller                  Enable Helm Tiller
@@ -180,6 +182,10 @@ while [[ $# > 0 ]] ; do
       IMAGE="$2"
       shift
       ;;
+    --velum-image)
+      VELUM_IMAGE="$2"
+      shift
+      ;;
     --vanilla)
       VANILLA="true"
       ;;
@@ -235,6 +241,7 @@ CAASP_KVM_ARGS="-m $MASTERS -w $WORKERS --image $IMAGE"
 [ -n "$PROXY"       ] && CAASP_KVM_ARGS="$CAASP_KVM_ARGS --proxy $PROXY"
 [ -n "$LOCATION"    ] && CAASP_KVM_ARGS="$CAASP_KVM_ARGS --location $LOCATION"
 [ -n "$VANILLA"     ] && CAASP_KVM_ARGS="$CAASP_KVM_ARGS --vanilla"
+[ -n "$VELUM_IMAGE" ] && CAASP_KVM_ARGS="$CAASP_KVM_ARGS --velum-image $VELUM_IMAGE"
 [ -n "$DISABLE_MELTDOWN_SPECTRE" ] && CAASP_KVM_ARGS="$CAASP_KVM_ARGS --disable-meltdown-spectre-fixes"
 [ -n "$EXTRA_REPO"  ] && CAASP_KVM_ARGS="$CAASP_KVM_ARGS --extra-repo $EXTRA_REPO"
 
@@ -242,7 +249,7 @@ export ENVIRONMENT="$DIR/caasp-kvm/environment.json"
 
 # Core methods
 setup() {
-  log "Installing CaaSP Development Environment Requiemnts"
+  log "Installing CaaSP Development Environment Requirements"
   sudo zypper in --no-confirm --auto-agree-with-licenses $EARLY_DIST_PACKAGES
 
   local dist=$(lsb-release -sd | tr -d '"' | tr " " "_")
