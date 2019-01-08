@@ -17,7 +17,8 @@ DIST=${CAASP_DIST:-caasp}
 MASTERS=${CAASP_NUM_MASTERS:-1}
 WORKERS=${CAASP_NUM_WORKERS:-2}
 IMAGE=${CAASP_IMAGE:-channel://devel}
-VELUM_IMAGE=${CAASP_VELUM_IMAGE:-channel://devel}
+VELUM_IMAGE=${CAASP_VELUM_IMAGE:-registry.suse.de/devel/casp/head/controllernode/images_container_base/sles12/velum-development:0.0}
+CACHE_VELUM=${CAASP_CACHE_VELUM:-false}
 VANILLA=${CAASP_VANILLA:-}
 DISABLE_MELTDOWN_SPECTRE=${CAASP_DISABLE_MELTDOWN_SPECTRE:-}
 PROXY=${CAASP_HTTP_PROXY:-}
@@ -149,6 +150,10 @@ while [[ $# > 0 ]] ; do
       ;;
     --velum-image)
       VELUM_IMAGE="$2"
+      shift
+      ;;
+    --cache-velum)
+      CACHE_VELUM="$2"
       shift
       ;;
     --vanilla)
@@ -339,8 +344,8 @@ build() {
 
   if [ -n "$CAASP_VELUM_DIR" -a "$VANILLA" != "true" ] ; then
     log "Rebuilding Velum Development Docker Image"
-    if [[ "$VELUM_IMAGE" =~ [Cc]ache ]]; then
-      # Do not rebuild Docker image at all
+    if [[ "$CACHE_VELUM" == 'true' ]]; then
+      # Do not rebuild Docker image
       $DIR/tools/build-velum-image "$CAASP_VELUM_DIR" "${VELUM_IMAGE}" "${PROXY}" -c
     else
       $DIR/tools/build-velum-image "$CAASP_VELUM_DIR" "${VELUM_IMAGE}" "${PROXY}"
